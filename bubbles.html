@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- lien vers  la librairie jQuery -->
+    <script src="lib/jquery-3.3.1.min.js"></script>
+
+    
+    <style>
+            /* Définition du style de la bulle */
+            .bubble {
+                border-radius: 50%;
+                width: 200px;
+                height: 200px;
+                position: absolute;
+                top: 50px;
+                left: 50px;
+            }
+        </style>
+    
+</head>
+
+<body>
+
+    <script>
+        /*
+         Faire apparaître aléatoirement des bulles sur la page web 
+         */
+
+        // Fonction chargé de généré aléatoirement un chiffre
+         function getRandomInt(max, min) {
+             // Si min pas remplis, alors il est égal à 0 par défaut
+             if(!min) min = 0;
+             // Math.floor permet d'obtenir l'entier inférieur le plus proche
+             // Math.random permet d'avoir une chiffre aléatoire entre 0 et 1
+             return Math.floor(Math.random() * (max-min+1) + min)
+         }
+
+         // Fonction charger de créer une bulle différente à chaque appel
+         function createBubble() {
+             // Variable qui génère un chiffre aléatoire en faisant appel à la fonction getRandomInt
+             var bubbleSize = getRandomInt(300,10);
+             // Variable qui créé une couleur aléatoire 
+             var bubbleColor = `rgba(${getRandomInt(200)}, ${getRandomInt(200)}, ${getRandomInt(200)}, ${Math.random()})`;
+             // Variable qui cible document
+             var $document = $(document);
+             // Variable qui définit les propriétés de la bulle
+             var $bubble = $("<div></div>").addClass("bubble")
+                                            .css("width", bubbleSize + "px")
+                                            .css("height", bubbleSize + "px")
+                                            .css("top", getRandomInt($document.height() - bubbleSize, 0) + "px")
+                                            .css("left", getRandomInt($document.width() - bubbleSize, 0) + "px")
+                                            .css("background-color", bubbleColor);
+
+            // Insertion de la bubble dans le DOM comme child de body
+            $("body").append($bubble);
+
+            // Animation de l'affichage de la bulle
+            // il y aura des bulles qui apparaissent plus vite que d'autre ...
+            //grâce à la fonction getRandom qui à pour max 1sec et min 0.2sec avant affichage
+            $bubble.show(getRandomInt(1000, 200));
+
+            // Planifié la destruction d'une bulle
+            // la bulle se détruit au bout d'un temps aléatoire compris entre 5sec et 0.5sec
+            setTimeout(function () {
+                $bubble.hide(getRandomInt(1000, 200), function() {
+                    $bubble.remove();
+                });
+                // Interval d'éxécution de la destruction entre 5sec et 0.5sec
+            }, getRandomInt(5000, 500)); 
+         }                                
+        
+
+        $(document).ready(function () {
+            // Appel de la fonction toute les 0.5sec
+            setInterval(createBubble, 500);
+        });
+    
+    </script>
+    
+</body>
+</html>
