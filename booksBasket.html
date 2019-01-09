@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- lien vers  la librairie jQuery -->
+    <script src="lib/jquery-3.3.1.min.js"></script>
+    <!-- lien vers la librairie de livre pour récupérer ses infos -->
+    <script src="data/livres.js"></script>
+
+    <style>
+        #bookTemplate {
+            display: none;
+        }
+    
+    </style>
+</head>
+<body>
+
+    <!-- Création du menu déroulant et du bouton d'ajout au panier -->
+    <div>
+        <select id="bookSelect"></select>
+        <button id="btAddBook">Ajouter au panier</button>
+    </div>
+
+    <!-- Création du tableau de l'affichage client des données -->
+    <table id="basket">
+        <thead>
+            <tr>
+                <!--- th sont les colonnes de thead -->
+                <th>Livre</th>
+                <th>PU</th>
+                <th>Qt</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <!-- tr correspond à toutes les lignes de tbody -->
+            <tr id="bookTemplate">
+                <!-- les td correspondent au nb de colonne de tr, 4 colonnes comme dans thead -->
+                <td></td>
+                <td></td>
+                <td>
+                    <input type="number" value="1" >
+                </td>
+                <td></td>
+            </tr>
+        </tbody>
+
+        <tfoot>
+            <tr>
+                <!-- On indique avec colspan qu'il occupe 3 (sur 4) colonnes dans le tableau -->
+                <!-- td étant les colonnes du tableau -->
+                <td colspan="3">Total</td>
+                <td id="grandTotal"></td>
+            </tr>
+        </tfoot>
+
+    </table>
+
+    <script>
+
+        // Création d'une fonction chargée de nous trouvez une ligne 
+        function findRow(title) {
+            // Variable ciblant les lignes de tbody
+            var $rows = $("tbody tr");
+            returnedValue = false;
+            $rows.each(function(index, item) {
+                var element = $(item);
+                // SI mon title est égal au contenu de la 1ère colonne (contenant le titre) de ma ligne
+                if (title == element.find("td").eq(0).text()) {
+                    // ALORS l'élément est intégré à son parents (tbody)
+                    returnedValue = element;
+                } 
+            });
+            // Si la boucle ne trouve rien alors la fonction retourne false
+            return returnedValue;
+        }
+        
+        // Création d'une fonction gérant le prix total 
+        function updateGrandTotal() {
+            let total = 0;
+            // On parcours le tableau en récupérant tous les 4ème enfants "Total"
+            $totals = $("tbody tr td:nth-child(3)");
+
+            $totals.each(function(index, item){
+                if($(item).text() != "") {
+                total += parseInt($(item).text());
+                }
+            });
+
+            $("#grandTotal").text(total);
+        }
+
+        $(document).ready(function () {
+            // Création des options du menu déroulant
+            // Configuration du 1er choix de la liste
+            var $option1 = $("<option></option>").text("Choix du livres...");
+            $("#bookSelect").append($option1);
+
+            // Boucle parcourant le tableau des livres nommé books
+            for (item of books) {
+                // Variable créant une balise option avec comme contenu le titre du livre à la ligne i
+                var $option = $("<option></option>").text(item.title);
+                // insertion de la variable dans select 
+                $("#bookSelect").append($option);
+                };
+
+                // Variable ciblant le bouton
+                var $btAdd = $("#btAddBook");
+                // Variable ciblant le tbody de notre tableau de prix
+                var $template = $("#bookTemplate");
+                // Variable ciblant le tbody du tableau qui a pour id basket
+                var $tbody = $("#basket tbody");
+
+                // Evènement au clic sur le bouton
+                $btAdd.click(function () {
+                    // Variable ciblant l'indice de l'élément sélectionné
+                    var selectedIndex = $("select").find(":selected").index()-1;
+                    // Variable clonant le tr du tbody du tableau pour chaque nouvelles lignes
+                    var $newrow = $template.clone().removeAttr("id");
+
+                    // Récupération d'une ligne existante 
+                    $existingRow = findRow(books[selectedIndex].title);
+
+                    // SI la ligne n'existe pas ALORS
+                    if (! $existingRow) {
+                    // on séléctionne la 1ère colonne de td (eq(0)) et on lui attribut comme texte title
+                    $newrow.find("td").eq(0).text(books[selectedIndex].title);
+                    $newrow.find("td").eq(1).text(books[selectedIndex].price);
+                    $newrow.find("td").eq(3).text(books[selectedIndex].price);
+                    // On l'intègre au DOM 
+                    $tbody.append($newrow);
+                    // On fait appel à la fonction qui recalcul le Grand Total
+                    updateGrandTotal();
+                    }  
+                    // Si la gne existe déja 
+                    else {
+                        // Variable ciblant la colonne de la Qt sur la ligne
+                        var $input = $existingRow.find("td").eq(2).find("input");
+                        // Variable qui convertis une chaîne de caractère en entier...
+                        // de manière à pouvoir faire ++
+                        var qt = parseInt($input.val());
+                        qt++;
+                        // insertion de la nouvelle valeur de Qt
+                        $input.attr("value", qt);
+                        // .trigger permet de déclencher un évènement
+                        // On déclenche l'évènement change sur $input
+                        $input.trigger("change");
+                    }       
+            });
+
+            $tbody.delegate("input", "change", function() {
+                var qt = $(this).val();
+
+                if (qt == 0) {
+                    $(this).parent().parent().remove();
+                } else {
+                    // Variable qui séléctionne le parent précédent la case QT
+                    // on cible le texte du PU
+                    // .parent().prev() séléctionne le parent précédent
+                    var unitPrice = $(this).parent().prev().text();
+                    $(this).parent().next().text(qt*unitPrice);
+                }
+                // On fait appel à la fonction qui recalcul le Grand Total
+                updateGrandTotal();
+            });
+        });
+        
+        
+    </script>
+    
+</body>
+</html>
