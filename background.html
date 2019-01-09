@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- lien vers  la librairie jQuery -->
+    <script src="lib/jquery-3.3.1.min.js"></script>
+</head>
+<body>
+
+    <div>
+        <img id="imgDeFond" style="width : 600px; height : 400px">
+    </div>
+    <!-- insertion de l'image dans la balise button, data- remplace la src d'une balise img-->
+    <button id="btShoubaka" data-img = "img/shoubaka.jpg">Shoubaka</button>
+    <button id="btRails" data-img = "img/rails.jpg">Rails</button>
+    <button id="btAutomne" data-img = "img/automne.jpg">Automne</button>
+    
+    <script>
+            /*
+        CODE OPTIMISEE 
+        en mettant l'image dans la balise img
+        */
+        $(document).ready(function() {
+            // Variables ciblant ma div et mes éléments button
+            var $photo = $("#imgDeFond");
+            var $buttons = $("button");
+
+            $buttons.click(function() {
+                // Variable faisant référence au bouton sur lequel j'ai cliqué
+                var clickedButton = $(this);
+                // Variable récupérant l'attribut du bouton cliqué
+                var imgName = clickedButton.attr("data-img");
+                // Attibution de l'attribut src à img
+                // on peut rajouter les animations avec .hide() et .show()
+                $photo.attr("src", imgName);
+                // Nettoyage de la propriété css de tous les boutons avant affectation de la nouvelle valeur
+                $buttons.css("background-color","");
+                // Modification de la couleur du bouton au clic
+                clickedButton.css("background-color", "yellow");
+            });
+        });
+
+
+        /* CODE QUE J'AI FAIS
+
+        // $ cible le document qui exécutera la fonction une fois les éléments chargés
+        $(document).ready(function() {
+
+            
+            // Evènement ciblant les différents boutons pour changer l'image
+            $("#btShoubaka").click(function () {
+                // .attri() permet de rajouter un attribut à l'img
+                // img/ permet de descendre dans l'arborescence car l'img est dans un sous dossier
+                $("#imgDeFond").attr("src", "img/shoubaka.jpg");
+                // Nettoyage de la propriété css de tous les boutons avant affectation de la nouvelle valeur
+                $("button").css("background-color","");
+                // Modification de la couleur du bouton au clic
+                $("#btShoubaka").css("background-color", "yellow");
+            });
+            $("#btRails").click(function () {
+                $("#imgDeFond").attr("src", "img/rails.jpg");
+                $("button").css("background-color","");
+                $("#btRails").css("background-color", "yellow");
+            });
+            $("#btAutomne").click(function () {
+                $("#imgDeFond").attr("src", "img/automne.jpg");
+                $("button").css("background-color","");
+                $("#btAutomne").css("background-color", "yellow");
+            });
+        }); */
+
+    
+
+    
+    </script>
+</body>
+</html>
