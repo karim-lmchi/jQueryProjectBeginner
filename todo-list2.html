@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Todo List</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Lien vers  la librairie jQuery -->
+    <script src="lib/jquery-3.3.1.min.js"></script>
+    <!-- Lien vers notre bootstraps qui contient du css préprogrammer par défaut -->
+    <link href="jquery-project/www/bower-libs/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+</head>
+
+<body class="container-fluid">
+    <!--- La class permet de centrer nos bloc avec les colonnes boostrap -->
+    <div class="row justify-content-center">
+        <!-- La div occupera 6/12 colonnes du bootstrap, celles du centre -->
+        <div class="col-6">
+            <h1>Liste des trucs à faire</h1>
+            <!-- Création de la zone de saisie -->
+            <div class="form-group">
+                <input type="text" id="inputTask" class="form-control" placeholder="Entrer une tâche">
+            </div>
+            <!-- Création du bouton d'ajout -->
+            <div class="form-group">
+                <button class="btn btn-primary btn-block" id="btAddTask">Ajouter</button>
+            </div>
+
+            <!-- Boutons de filtres -->
+            <div>
+                <input type="radio" name="filter-Todo" value="0" checked id="filter-all"/>
+                <label> Tous</label>
+                <input type="radio" name="filter-Todo" value="1" id="filter-done" />
+                <label> Finit</label>
+                <input type="radio" name="filter-Todo" value="2" id="filter-pending"/>
+                <label> à faire</label>
+            </div>
+
+            <!-- Création d'un tableau dans lequel apparaîtront les tâches-->
+            <div>
+                <table id="todoTable" class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Statut</th>
+                            <th>Tâche</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialisation du tableau avec des valeurs
+        var taskList = [{
+                taskName: "Nettoyer les écuries",
+                done: false
+            },
+            {
+                taskName: "tuer l'hybride de lerne",
+                done: false
+            },
+            {
+                taskName: "Délivrer thésée en enfer",
+                done: false
+            },
+        ];
+
+        // Création d'une constante pour facilité le code, ellle fait référence à la value des filtres
+        const FILTER = {
+            "ALL" : 0,
+            "DONE": 1,
+            "PENDING": 2
+        };
+
+        // Variables ciblant la zone de saisie et le bouton d'ajout
+        var $inputTask = $("#inputTask");
+        var $btAddTask = $("#btAddTask");
+
+        // Appel de la fonction d'affichage de la liste des tâches coder plus bas
+        renderTasks();
+
+        /************************************************************
+        Ajout d'une nouvelle tâche
+        ************************************************************/
+
+        // Evènement au clic sur le bouton ajouter
+        $btAddTask.click(function () {
+            // Permet d'obtenir le texte contenu dans la zone de saisie
+            let newtaskName = $inputTask.val();
+            // Condition si le champs n'est pas vide
+            if (newtaskName.trim() != "") {
+                /*
+                 Permet d'éviter les doublons dans le liste
+                */
+                // Variable trouvant l'indice de l'élément en faisant un callback
+                var sameTaskIndex = taskList.findIndex(function (item) {
+                    return item.taskName == newtaskName;
+                });
+                // SI l'indice de l'élément est égal à -1, donc qu'il n'est pas déja présent...
+                // dans la liste des tâches ALORS l'élément saisie est ajouter à la table
+                if (sameTaskIndex == -1) {
+                    taskList.push({
+                        taskName: newtaskName,
+                        done: false
+                    });
+                    // Fait appel à la fonction qui affichera l'élément dans la listes de tâches
+                    renderTasks();
+                    // vide la zone de saisie
+                    $inputTask.val("");
+                    // renvoi le focus sur la zone de saisie
+                    $inputTask.focus();
+                }
+            }
+        });
+
+        /************************************************************
+        Modification d'une tâche
+        ************************************************************/
+
+        $("#todoTable").delegate("input", "change", function () {
+            let $checkbox = $(this);
+            let taskName = $checkbox.parent().next().text();
+            let taskIndex = taskList.findIndex(function (item) {
+                return item.taskName == taskName;
+            });
+
+            taskList[taskIndex].done = $checkbox.prop("checked");
+
+            renderTasks();
+        });
+
+        $("input[name='filter-Todo']").change(function(){
+            renderTasks();
+        });
+
+        /*************************************************************
+        Affichage de la liste des tâches
+        *************************************************************/
+
+        function renderTasks() {
+            // Variable ciblant le tbody du tableau des tâches
+            var $tbody = $("#todoTable tbody");
+            // Création d'un élément tbody fantôme que l'on intégrera par la suite
+            var $shadowTbody = $("<tbody></tbody");
+
+            let filterValue = $("input[name='filter-Todo']:checked").val();
+            if(filterValue != FILTER.ALL){
+                var criterion = filterValue == FILTER.DONE;
+                list = taskList.filter(function(item) {
+                    return item.done == criterion;
+                });
+            } else {
+                list = taskList;
+            }
+
+            // Boucle parcourant la table taskList et qui intégre les éléments du tableau...
+            // en tant que child du tbody fantôme en faisant appel...
+            // à la fonction renderRow() coder plus bas
+            for (task of list) {
+                $shadowTbody.append(renderRow(task));
+            }
+            // On remplace le tbody programmé initialement par le tbody fantôme contenant les tâches
+            $tbody.replaceWith($shadowTbody);
+        }
+
+        function renderRow(task) {
+            // Création de lignes (tr) avec le contenu des infos souhaité (checkbox, tâche)
+            var $tr = $("<tr></tr>");
+            // le résultat de la fonction getTaskStatusCell sera children de cette ligne
+            $tr.append(getTaskStatusCell(task.done));
+            // le résultat de la fonction getTaskNameCell sera children de cette ligne également
+            $tr.append(getTaskNameCell(task.taskName));
+            // Résultat de l'appel de cette fonction (renderRow())
+            return $tr;
+        }
+
+        function getTaskNameCell(taskName) {
+            // Création d'une colonne (td) qui est children de la ligne (tr)...
+            // créé dans la fonction renderRow()
+            $td = $("<td></td>");
+            // Insertion du contenu de cette colonne qui est la tâche saisie
+            $td.text(taskName);
+            // Résultat de l'appel de cette fonction (getTaskNameCell())
+            return $td;
+        }
+
+        function getTaskStatusCell(isDone) {
+            // Création d'une colonne (td) qui est children de la ligne (tr)...
+            // créé dans la fonction renderRow()
+            var $td = $("<td></td>");
+            // Création d'une checkbox qui est un input avec pour type: checkbox
+            $checkbox = $("<input>");
+            $checkbox.attr("type", "checkbox");
+
+            if (isDone) {
+                $checkbox.attr("checked", "checked");
+            }
+            $td.append($checkbox);
+
+            return $td;
+        }
+    </script>
+
+</body>
+
+</html>
